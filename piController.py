@@ -26,7 +26,6 @@ class Game(object):
 		### Game Logic ###
 		if self.curState == State.IDLE:
 			resetGame()
-			changePiCarAllowance(False)
 			## If joystick is touched or button is pressed
 				## Switch to DRIVING mode##
 		elif self.curState == State.DRIVING:
@@ -63,6 +62,8 @@ class Game(object):
 	# Reset van game door attributen naar het origineel te veranderen
 	def resetGame():
 		print('Resetting game')
+		self.curState = State.IDLE # Om 100% zeker te zijn
+		self.piCarIsAllowedToDrive = False
 		self.curQuestionCount = 0
 		self.score = 0
 
