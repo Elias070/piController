@@ -1,8 +1,7 @@
 # piController
 
 ## To do:
-- Als er 2 minuten niks gedaan wordt -> Idle mode
-- Game status bijhouden
+- Timer om IDLE status te starten
+- Module maken om met de piCar te praten
 - Ontvangen van button presses
 - Het laten branden van licht
-- Vragen ophalen dmv een CSV bestand
