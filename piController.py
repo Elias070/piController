@@ -1,7 +1,3 @@
-# To do:
-	# Als er 2 minuten niks gedaan wordt -> Idle mode
-	# Game status bijhouden
-
 # Importeren van enumeration 
 from enum import Enum
 
@@ -15,11 +11,12 @@ class State(Enum):
 
 # Game class
 class Game(object):
-	# Constructor
+	# Constructor -- Wordt aangeroepen als er een gameobject aangemaakt wordt
 	def __init__(self):
+		print('Initiating Gameobject')
 		# Defining (global) variables
 		self.curState = State.IDLE
-		print('init')
+		
 
 	# Verander de current State
 	# @param {State} [state]
@@ -28,17 +25,10 @@ class Game(object):
 
 # Instantiate system
 try:
-	start()
-	while True:
-		draw()
-
-except KeyboardInterrupt:
-	print('Interrupted')
-
-def start():
 	game = Game()
 	print(game.curState)
 	game.changeState(State.DRIVING)
 	print(game.curState)
 
-def draw():
+except KeyboardInterrupt:
+	print('Interrupted')
