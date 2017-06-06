@@ -1,7 +1,11 @@
 # Importeren van enumeration 
 from enum import Enum
 
+# Importeren van GPIO
+import RPi.GPIO as GPIO
+
 # Enum class State met states geordend op prioriteit
+# Benummering = volgorde van prioriteit
 class State(Enum):
 	IDLE = 0
 	DRIVING = 1
@@ -9,13 +13,26 @@ class State(Enum):
 	ANSWERINGQUESTION = 3
 	FINISHED = 4
 
-class Ledematen(Enum):
+# Enum class Ledematen met alle beschikbare ledematen
+# Benummering: pinnummers van de LED's
+class LedematenPins(Enum):
 	HOOFD = 0
-	LINKERBEEN = 1
-	RECHTERBEEN = 2
-	LINKERARM = 3
-	RECHTERARM = 4
-	ROMP = 5
+	ROMP_BOVEN = 1
+	ROMP_BENEDEN = 2
+	ARM = 3
+	BEEN = 4
+
+# GPIO klaarmaken
+GPIO.setmode(GPIO.BCM) # BCM
+GPIO.setwarnings(False) # Warnings uitschakelen
+
+# Pins opzetten en klaar maken
+# Standaard staan de LED's uit
+GPIO.setup(LedematenPins.HOOFD.value,GPIO.LOW)
+GPIO.setup(LedematenPins.ROMP_BOVEN.value,GPIO.LOW)
+GPIO.setup(LedematenPins.ROMP_BENEDEN.value,GPIO.LOW)
+GPIO.setup(LedematenPins.ARM.value,GPIO.LOW)
+GPIO.setup(LedematenPins.BEEN.value,GPIO.LOW)
 
 # Game class
 class Game(object):
@@ -33,7 +50,7 @@ class Game(object):
 	def update(self):
 		### Game Logic ###
 		if self.curState == State.IDLE:
-			self.resetGame() # ERROR! Deze functie wordt constant aangeroepen
+			self.resetGame() # !!! Deze functie wordt constant aangeroepen !!!
 			## If joystick is touched or button is pressed
 				## Switch to DRIVING mode##
 		elif self.curState == State.DRIVING:
@@ -55,7 +72,6 @@ class Game(object):
 			print('c')
 			## if curQuestionCount == amountOfQuestions go to FINISHED state
 				## elif go to Driving mode
-			## halo
 		elif self.curState == State.FINISHED:
 			print('c')
 			## Alle lampjes laten flikkeren voor 10 seconden
@@ -64,7 +80,11 @@ class Game(object):
 		### Connectie naar piCar ###
 		if self.piCarIsAllowedToDrive:
 			print('c')
-			## --> piCar.move(direction) ##
+			## Hier checken naar de input van de joystick ###
+				## --> piCar.move(direction) ##
+
+		# updaten van currentQuestion
+		updateDisplay(curQuestionCount)
 
 	# Verander de current State
 	# @param {State} [state]
@@ -73,7 +93,7 @@ class Game(object):
 
 	# Reset van game door attributen naar het origineel te veranderen
 	def resetGame(self):
-		print('Resetting game')
+		#print('Resetting game')
 		self.curState = State.IDLE # Om 100% zeker te zijn
 		self.piCarIsAllowedToDrive = False
 		self.curQuestionCount = 0
@@ -83,6 +103,10 @@ class Game(object):
 	# @param {boolean} [allowance]
 	def changePiCarAllowance(self,allowance):
 		self.piCarIsAllowedToDrive = allowance
+
+	# Updaten van currentQuestion
+	def updateDisplay(number):
+		print('updating display')
 
 # Instantiate system
 try:
