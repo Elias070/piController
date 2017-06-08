@@ -28,6 +28,7 @@ GPIO.setwarnings(False) # Warnings uitschakelen
 
 # Pins opzetten en klaar maken
 # Standaard staan de LED's uit
+# Pinnummers zijn gelinked aan enum
 GPIO.setup(LedematenPins.HOOFD.value,GPIO.LOW)
 GPIO.setup(LedematenPins.ROMP_BOVEN.value,GPIO.LOW)
 GPIO.setup(LedematenPins.ROMP_BENEDEN.value,GPIO.LOW)
