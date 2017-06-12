@@ -5,7 +5,7 @@ from enum import Enum
 import RPi.GPIO as GPIO
 
 # Enum class State met states geordend op prioriteit
-# Benummering = volgorde van prioriteit
+# Benummering: volgorde van prioriteit
 class State(Enum):
 	IDLE = 0
 	DRIVING = 1
@@ -13,27 +13,46 @@ class State(Enum):
 	ANSWERINGQUESTION = 3
 	FINISHED = 4
 
-# Enum class Ledematen met alle beschikbare ledematen
+# Enum class voor de LED pins voor de Ledematen
 # Benummering: pinnummers van de LED's
-class LedematenPins(Enum):
-	HOOFD = 0
-	ROMP_BOVEN = 1
-	ROMP_BENEDEN = 2
-	ARM = 3
-	BEEN = 4
+class LedematenLEDPins(Enum):
+	HOOFD = 2
+	ROMP_BOVEN = 3
+	ROMP_BENEDEN = 4
+	ARM = 14
+	BEEN = 15
+
+# Enum class voor de lichtsensor pins voor de Ledematen
+# Benummering: Pins van de Lichtsensor
+class LedematenLSPins(Enum):
+	HOOFD = 17
+	ROMP_BOVEN = 27
+	ROMP_BENEDEN = 18
+	ARM = 22
+	BEEN = 23
+
+# Overige attributen met pinnummers
+speakerPin = 21
+buttonAPin = 20
+buttonBPin = 16
+buttonCPin = 26
 
 # GPIO klaarmaken
 GPIO.setmode(GPIO.BCM) # BCM
 GPIO.setwarnings(False) # Warnings uitschakelen
 
-# Pins opzetten en klaar maken
-# Standaard staan de LED's uit
-# Pinnummers zijn gelinked aan enum
-GPIO.setup(LedematenPins.HOOFD.value,GPIO.LOW)
-GPIO.setup(LedematenPins.ROMP_BOVEN.value,GPIO.LOW)
-GPIO.setup(LedematenPins.ROMP_BENEDEN.value,GPIO.LOW)
-GPIO.setup(LedematenPins.ARM.value,GPIO.LOW)
-GPIO.setup(LedematenPins.BEEN.value,GPIO.LOW)
+# Pins opzetten en klaar maken #
+for ledPins in LedematenLEDPins:
+	GPIO.setup(ledPins.value,GPIO.LOW) # Standaard staan de LED's uit
+
+for LSPins in LedematenLSPins:
+	print('LS Pins moeten nog opgezet worden')
+	# GPIO.setup(LSPins.value,GPIO.LOW) # Standaard staan de LED's uit
+
+GPIO.setup(buttonAPin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.setup(buttonBPin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.setup(buttonCPin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.setup(speakerPin, GPIO.OUT)
 
 # Game class
 class Game(object):
@@ -50,6 +69,10 @@ class Game(object):
 	# Deze functie wordt elke tick/frame uitgevoerd
 	def update(self):
 		### Game Logic ###
+		buttonAVal = GPIO.input(buttonAPin)
+		buttonBVal = GPIO.input(buttonBPin)
+		buttonCVal = GPIO.input(buttonCPin)
+
 		if self.curState == State.IDLE:
 			self.resetGame() # !!! Deze functie wordt constant aangeroepen !!!
 			## If joystick is touched or button is pressed
@@ -107,7 +130,7 @@ class Game(object):
 
 	# Updaten van currentQuestion
 	def updateDisplay(number):
-		print('updating display')
+		print('updating 7SD')
 
 # Instantiate system
 try:
