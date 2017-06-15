@@ -15,7 +15,7 @@ class State(Enum):
 
 # Enum class voor de LED pins voor de Ledematen
 # Benummering: pinnummers van de LED's
-class LedematenLEDPins(Enum):
+class LedematenLED(Enum):
 	HOOFD = 2
 	ROMP_BOVEN = 3
 	ROMP_BENEDEN = 4
@@ -24,12 +24,20 @@ class LedematenLEDPins(Enum):
 
 # Enum class voor de lichtsensor pins voor de Ledematen
 # Benummering: Pins van de Lichtsensor
-class LedematenLSPins(Enum):
+class LedematenLS(Enum):
 	HOOFD = 17
 	ROMP_BOVEN = 27
 	ROMP_BENEDEN = 18
 	ARM = 22
 	BEEN = 23
+
+# Enum class voor de Arcaderichtingen
+# Benummering: Pins van de Arcadestick
+class ArcadeStick(Enum):
+	FORWARD = 12
+	BACKWARD = 6
+	LEFT = 13
+	RIGHT = 5
 
 # Overige attributen met pinnummers
 speakerPin = 21
