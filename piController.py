@@ -6,6 +6,8 @@ import RPi.GPIO as GPIO
 
 # Importeren van pygame voor audio afspelen
 import pygame
+import time
+import numpy as np
 
 # Enum class State met states geordend op prioriteit
 # Benummering: volgorde van prioriteit
@@ -85,8 +87,7 @@ class Game(object):
 		print('Initiating Gameobject')
 		# Defining (global) variables
 		self.amountOfQuestions = 5 # Aantal vragen
-		self.curQuestion = 0 # Wat de current question is
-		self.score = 0 # Wat de current score is
+		self.currentQuestion = 0 # Wat de current question is
 		self.curState = State.IDLE # Wat de current state is
 		self.piCarIsAllowedToDrive = False # Of de piCar mag rijden default is false want status is IDLE
 
@@ -108,87 +109,95 @@ class Game(object):
 			## Als een van de buttons of Joysticks aangeraakt worden
 			if buttonAVal == False or buttonBVal == False or buttonCVal == False:
 				print('Button pressed, starting game!')
-				changeState(State.DRIVING)
+				self.changeState(State.DRIVING)
 			if arcadeFVal == False or arcadeBVal == False or arcadeLVal == False or arcadeRVal == False:
 				print('Arcade stick touched, starting game!')
-				changeState(State.DRIVING)
+				self.changeState(State.DRIVING)
 
 			# Flikkeren van lampjes -- grappig geluidje afspelen
-			print('ledflikker')
+			self.ledFlikker()
+			time.sleep(0.2)
 		elif self.curState == State.DRIVING:
 			# Auto mag rijden
 			self.changePiCarAllowance(True)
 
 			# Printen dat eerste vraag begint
-			if self.curQuestion == 0:
+			if self.currentQuestion == 0:
 				print('Eerste vraag start')
 
 			# Current Question verhogen naar 1, als het 0 is, ook toepasselijk
 			self.currentQuestion = self.currentQuestion + 1
+			print('start vraag')
+			print(self.currentQuestion)
 
-			# vraag 1: Hoofd B
-			# vraag 2: Romp boven B
-			# vraag 3: Arm A
-			# vraag 4: Romp benedem B
-			# vraag 5: Been B
-			if self.currentQuestion == 1:
-				GPIO.output(LedematenLED.HOOFD.value,GPIO.HIGH) # Hoofd aan, rest uit
-				GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+			while True:
+				# vraag 1: Hoofd B
+				# vraag 2: Romp boven B
+				# vraag 3: Arm A
+				# vraag 4: Romp beneden B
+				# vraag 5: Been B
+				if self.currentQuestion == 1:
+					GPIO.output(LedematenLED.HOOFD.value,GPIO.HIGH) # Hoofd aan, rest uit
+					GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 
-				# Als de lichtsensor van het hoofd afgaat
-				if GPIO.input(LedematenLS.HOOFD.value) == 1:
-					print('Bij vraag 1 gearriveerd')
-					changeState(State.INQUESTION)
-					self.turnOffAllLeds()
-			if self.currentQuestion == 2:
-				GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.HIGH)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					if GPIO.input(LedematenLS.HOOFD.value) == 1:
+						print('Bij vraag 1 gearriveerd')
+						self.changeState(State.INQUESTION)
+						self.turnOffAllLeds()
 
-				if GPIO.input(LedematenLS.HOOFD.value) == 1:
-					print('Bij vraag 2 gearriveerd')
-					changeState(State.INQUESTION)
-					self.turnOffAllLeds()
-			if self.currentQuestion == 3:
-				GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.HIGH)
-				GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+				if self.currentQuestion == 2:
+					GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.HIGH)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 
-				if GPIO.input(LedematenLS.HOOFD.value) == 1:
-					print('Bij vraag 3 gearriveerd')
-					changeState(State.INQUESTION)
-					self.turnOffAllLeds()
-			if self.currentQuestion == 4:
-				GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.HIGH)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					if GPIO.input(LedematenLS.HOOFD.value) == 1:
+						print('Bij vraag 2 gearriveerd')
+						self.changeState(State.INQUESTION)
+						self.turnOffAllLeds()
 
-				if GPIO.input(LedematenLS.HOOFD.value) == 1:
-					print('Bij vraag 4 gearriveerd')
-					changeState(State.INQUESTION)
-					self.turnOffAllLeds()
-			if self.currentQuestion == 5:
-				GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
-				GPIO.output(LedematenLED.ARM.value,GPIO.HIGH)
+				if self.currentQuestion == 3:
+					GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.HIGH)
+					GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 
-				if GPIO.input(LedematenLS.HOOFD.value) == 1:
-					print('Bij vraag 5 gearriveerd')
-					changeState(State.INQUESTION)
-					self.turnOffAllLeds()
+					if GPIO.input(LedematenLS.HOOFD.value) == 1:
+						print('Bij vraag 3 gearriveerd')
+						self.changeState(State.INQUESTION)
+						self.turnOffAllLeds()
+
+				if self.currentQuestion == 4:
+					GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.HIGH)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+
+					if GPIO.input(LedematenLS.HOOFD.value) == 1:
+						print('Bij vraag 4 gearriveerd')
+						self.changeState(State.INQUESTION)
+						self.turnOffAllLeds()
+
+				if self.currentQuestion == 5:
+					GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
+					GPIO.output(LedematenLED.ARM.value,GPIO.HIGH)
+
+					if GPIO.input(LedematenLS.HOOFD.value) == 1:
+						print('Bij vraag 5 gearriveerd')
+						self.changeState(State.INQUESTION)
+						self.turnOffAllLeds()
 
 		elif self.curState == State.INQUESTION:
+			print('Inquestion: Start afspelen van vraag')
 			self.changePiCarAllowance(False)
 			if self.currentQuestion == 1:
 				# Speel info file 
@@ -230,8 +239,7 @@ class Game(object):
 						GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.HIGH)
 
 					# Naar answering mode om keuze te maken
-					changeState(State.ANSWERINGQUESTION)
-
+					self.changeState(State.ANSWERINGQUESTION)
 			if self.currentQuestion == 2:
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -271,7 +279,7 @@ class Game(object):
 						GPIO.output(vraagRGB.BOVEN_ROMP_GOED.value,GPIO.HIGH)
 
 					# Naar answering mode om keuze te maken
-					changeState(State.ANSWERINGQUESTION)
+					self.changeState(State.ANSWERINGQUESTION)
 			if self.currentQuestion == 3:
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -312,7 +320,7 @@ class Game(object):
 						GPIO.output(vraagRGB.ARM_GOED.value,GPIO.HIGH)
 
 					# Naar answering mode om keuze te maken
-					changeState(State.ANSWERINGQUESTION)
+					self.changeState(State.ANSWERINGQUESTION)
 			if self.currentQuestion == 4:
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -353,7 +361,7 @@ class Game(object):
 						GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
 
 					# Naar answering mode om keuze te maken
-					changeState(State.ANSWERINGQUESTION)
+					self.changeState(State.ANSWERINGQUESTION)
 			if self.currentQuestion == 5:
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -394,16 +402,16 @@ class Game(object):
 						GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
 
 					# Naar answering mode om keuze te maken
-					changeState(State.ANSWERINGQUESTION)
+					self.changeState(State.ANSWERINGQUESTION)
 
 		elif self.curState == State.ANSWERINGQUESTION:
 			print('Making decision...')
-			if self.curQuestion == self.amountOfQuestions:
+			if self.currentQuestion == self.amountOfQuestions:
 				print('Laatste vraag beantwoord naar finished')
-				changeState(State.FINISHED)
+				self.changeState(State.FINISHED)
 			else:
 				print('Hoppa naar volgende vraag')
-				changeState(State.DRIVING)
+				self.changeState(State.DRIVING)
 
 		elif self.curState == State.FINISHED:
 			print('Finished')
@@ -431,10 +439,9 @@ class Game(object):
 	# Reset van game door attributen naar het origineel te veranderen
 	def resetGame(self):
 		#print('Resetting game')
-		self.curState = State.IDLE # Om 100% zeker te zijn
+		self.changeState(State.IDLE) # Om 100% zeker te zijn
 		self.piCarIsAllowedToDrive = False
-		self.curQuestionCount = 0
-		self.score = 0
+		self.currentQuestion = 0
 
 	# Veranderen of de auto mag rijden
 	# @param {boolean} [allowance]
@@ -448,6 +455,15 @@ class Game(object):
 		GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
+	
+	def ledFlikker():
+		print('Led Flikker')
+		GPIO.output(LedematenLED.HOOFD.value,np.random.choice([GPIO.LOW,GPIO.HIGH]))
+		GPIO.output(LedematenLED.ROMP_BOVEN.value,np.random.choice([GPIO.LOW,GPIO.HIGH]))
+		GPIO.output(LedematenLED.ARM.value,np.random.choice([GPIO.LOW,GPIO.HIGH]))
+		GPIO.output(LedematenLED.ROMP_BENEDEN.value,np.random.choice([GPIO.LOW,GPIO.HIGH]))
+		GPIO.output(LedematenLED.ARM.value,np.random.choice([GPIO.LOW,GPIO.HIGH]))
+
 
 # Instantiate system
 try:
