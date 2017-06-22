@@ -7,7 +7,7 @@ import socket
 
 # TCP Connectie
 HOST='10.0.0.1'
-PORT=8014
+PORT=8015
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
@@ -84,11 +84,7 @@ piCarInput = '4'
 try:
 	StopMotors()
 	while True:
-		piCarInput = conn.recv(1024).decode()
-		inputArr = []
-		inputArr.append(piCarInput)
-		piCarInput = inputArr[0][0]
-		print(piCarInput)
+		piCarInput = conn.recv(1).decode()
 
 		if piCarInput == '1':
 			Forwards()

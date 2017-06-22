@@ -14,7 +14,7 @@ import numpy as np
 # Importeren van python socket voor TCP connectie
 import socket
 HOST='10.0.0.1'
-PORT=8014
+PORT=8015
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
@@ -248,9 +248,9 @@ class Game(object):
 
 		elif self.curState == State.INQUESTION:
 			print('Inquestion: Start afspelen van vraag')
+			sInput = '5'.encode()
+			s.send(sInput)
 			if self.currentQuestion == 1:
-				sInput = '5'.encode()
-				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag1info.mpeg")
@@ -309,8 +309,6 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 2:
-				sInput = '5'.encode()
-				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag2info.mpeg")
@@ -367,8 +365,6 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 3:
-				sInput = '5'.encode()
-				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag3info.mpeg")
@@ -425,8 +421,6 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 4:
-				sInput = '5'.encode()
-				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag4info.mpeg")
@@ -483,8 +477,6 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 5:
-				sInput = '5'.encode()
-				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag5info.mpeg")
