@@ -1,3 +1,5 @@
+# CLIENT
+
 # Importeren van enumeration 
 from enum import Enum
 
@@ -8,6 +10,13 @@ import RPi.GPIO as GPIO
 import pygame
 import time
 import numpy as np
+
+# Importeren van python socket voor TCP connectie
+import socket
+HOST='10.0.0.1'
+PORT=8002
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
 
 # Enum class State met states geordend op prioriteit
 # Benummering: volgorde van prioriteit
@@ -134,6 +143,35 @@ class Game(object):
 			print(self.currentQuestion)
 
 			while True:
+				buttonAVal = GPIO.input(buttonAPin)
+				buttonBVal = GPIO.input(buttonBPin)
+				buttonCVal = GPIO.input(buttonCPin)
+
+				arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
+				arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
+				arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
+				arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
+				### Connectie naar piCar ###
+				#if self.piCarIsAllowedToDrive:
+					## Hier checken naar de input van de joystick ###
+				if arcadeFVal == False:
+					sInput = '0'.encode()
+					s.send(sInput)
+					print('send car bluetooth forward')
+				if arcadeBVal == False:
+					sInput = '1'.encode()
+					s.send(sInput)
+					print('send car bluetooth backward')
+				if arcadeLVal == False:
+					sInput = '2'.encode()
+					s.send(sInput)
+					print('send car bluetooth left')
+				if arcadeRVal == False:
+					sInput = '3'.encode()
+					s.send(sInput)
+					print('send car bluetooth right')
+					## --> piCar.move(direction) ##
+
 				# vraag 1: Hoofd B
 				# vraag 2: Romp boven B
 				# vraag 3: Arm A
@@ -525,19 +563,6 @@ class Game(object):
 			pygame.mixer.quit()
 			self.changeState(State.IDLE)
 
-		### Connectie naar piCar ###
-		if self.piCarIsAllowedToDrive:
-			## Hier checken naar de input van de joystick ###
-			if arcadeFVal == False:
-				print('send car bluetooth forward')
-			if arcadeBVal == False:
-				print('send car bluetooth backward')
-			if arcadeLVal == False:
-				print('send car bluetooth left')
-			if arcadeRVal == False:
-				print('send car bluetooth right')
-				## --> piCar.move(direction) ##
-
 	# Verander de current State
 	# @param {State} [state]
 	def changeState(self,state):
@@ -590,8 +615,6 @@ class Game(object):
 
 	def updateControlsInput(self):
 		print('updating')
-		
-
 
 # Instantiate system
 try:
@@ -603,5 +626,6 @@ try:
 
 # Stoppen van programma dmv CTRL + C
 except KeyboardInterrupt:
+	s.close()
 	GPIO.cleanup()
 	print('Interrupted')
