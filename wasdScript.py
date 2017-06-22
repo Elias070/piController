@@ -7,7 +7,7 @@ import socket
 
 # TCP Connectie
 HOST='10.0.0.1'
-PORT=8013
+PORT=8014
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
@@ -18,47 +18,67 @@ print('Connected by', addr)
 # Set the GPIO modes
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+
+# How many times to turn the pin on and off each second
+Frequency = 20
+DutyCycle = 30
+Stop = 0
+
 # Set variables for the GPIO motor pins
 pinMotorAForwards = 10
 pinMotorABackwards = 9
 pinMotorBForwards = 8
 pinMotorBBackwards = 7
+
 # Set the GPIO Pin mode
 GPIO.setup(pinMotorAForwards, GPIO.OUT)
 GPIO.setup(pinMotorABackwards, GPIO.OUT)
 GPIO.setup(pinMotorBForwards, GPIO.OUT)
 GPIO.setup(pinMotorBBackwards, GPIO.OUT)
+
+# Set the GPIO to software PWM at 'Frequency' Hertz
+pwmMotorAForwards = GPIO.PWM(pinMotorAForwards, Frequency)
+pwmMotorABackwards = GPIO.PWM(pinMotorABackwards, Frequency)
+pwmMotorBForwards = GPIO.PWM(pinMotorBForwards, Frequency)
+pwmMotorBBackwards = GPIO.PWM(pinMotorBBackwards, Frequency)
+
+# Start the software PWM with a duty cycle of 0 (i.e. not moving)
+pwmMotorAForwards.start(Stop)
+pwmMotorABackwards.start(Stop)
+pwmMotorBForwards.start(Stop)
+pwmMotorBBackwards.start(Stop)
+
 # Turn all motors off
 def StopMotors():
-	GPIO.output(pinMotorAForwards, 0)
-	GPIO.output(pinMotorABackwards, 0)
-	GPIO.output(pinMotorBForwards, 0)
-	GPIO.output(pinMotorBBackwards, 0)
+	pwmMotorAForwards.ChangeDutyCycle(Stop)
+	pwmMotorABackwards.ChangeDutyCycle(Stop)
+	pwmMotorBForwards.ChangeDutyCycle(Stop)
+	pwmMotorBBackwards.ChangeDutyCycle(Stop)
+
 # Turn both motors forwards
 def Forwards():
-	GPIO.output(pinMotorAForwards, 1)
-	GPIO.output(pinMotorABackwards, 0)
-	GPIO.output(pinMotorBForwards, 1)
-	GPIO.output(pinMotorBBackwards, 0)
+	pwmMotorAForwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorABackwards.ChangeDutyCycle(Stop)
+	pwmMotorBForwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorBBackwards.ChangeDutyCycle(Stop)
 # Turn both motors backwards
 def Backwards():
-	GPIO.output(pinMotorAForwards, 0)
-	GPIO.output(pinMotorABackwards, 1)
-	GPIO.output(pinMotorBForwards, 0)
-	GPIO.output(pinMotorBBackwards, 1)
-
+	pwmMotorAForwards.ChangeDutyCycle(Stop)
+	pwmMotorABackwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorBForwards.ChangeDutyCycle(Stop)
+	pwmMotorBBackwards.ChangeDutyCycle(DutyCycle)
 # Turn left
 def Left():
-	GPIO.output(pinMotorAForwards, 0)
-	GPIO.output(pinMotorABackwards, 1)
-	GPIO.output(pinMotorBForwards, 1)
-	GPIO.output(pinMotorBBackwards, 0)
+	pwmMotorAForwards.ChangeDutyCycle(Stop)
+	pwmMotorABackwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorBForwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorBBackwards.ChangeDutyCycle(Stop)
 # Turn Right
 def Right():
-	GPIO.output(pinMotorAForwards, 1)
-	GPIO.output(pinMotorABackwards, 0)
-	GPIO.output(pinMotorBForwards, 0)
-	GPIO.output(pinMotorBBackwards, 1)	
+	pwmMotorAForwards.ChangeDutyCycle(DutyCycle)
+	pwmMotorABackwards.ChangeDutyCycle(Stop)
+	pwmMotorBForwards.ChangeDutyCycle(Stop)
+	pwmMotorBBackwards.ChangeDutyCycle(DutyCycle)
 
 piCarInput = '4'
 try:
@@ -68,26 +88,24 @@ try:
 		inputArr = []
 		inputArr.append(piCarInput)
 		piCarInput = inputArr[0][0]
-
-		if piCarInput == '0':
-			Forwards()
-			print('Forwards')
+		print(piCarInput)
 
 		if piCarInput == '1':
+			Forwards()
+			print('Forwards')
+		elif piCarInput == '2':
 			Backwards()
 			print('Backwards')
-		
-		if piCarInput == '2':
+		elif piCarInput == '3':
 			Left()
 			print('Left')
-		
-		if piCarInput == '3':
+		elif piCarInput == '4':
 			Right()
 			print('Right')
-		
-		if piCarInput == '4':
+		else:
 			print('Los gelaten denk ik')
 			StopMotors()
+
 
 except KeyboardInterrupt:
 	s.close()

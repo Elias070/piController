@@ -14,7 +14,7 @@ import numpy as np
 # Importeren van python socket voor TCP connectie
 import socket
 HOST='10.0.0.1'
-PORT=8013
+PORT=8014
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
@@ -120,9 +120,11 @@ class Game(object):
 			## Als een van de buttons of Joysticks aangeraakt worden
 			if buttonAVal == False or buttonBVal == False or buttonCVal == False:
 				print('Button pressed, starting game!')
+				self.turnOffAllVragenLeds()
 				self.changeState(State.DRIVING)
 			if arcadeFVal == False or arcadeBVal == False or arcadeLVal == False or arcadeRVal == False:
 				print('Arcade stick touched, starting game!')
+				self.turnOffAllVragenLeds()
 				self.changeState(State.DRIVING)
 
 			# Flikkeren van lampjes -- grappig geluidje afspelen
@@ -132,6 +134,7 @@ class Game(object):
 		elif self.curState == State.DRIVING:
 			# Printen dat eerste vraag begint
 			if self.currentQuestion == 0:
+				self.turnOffAllVragenLeds()
 				print('Eerste vraag start')
 
 			# Current Question verhogen naar 1, als het 0 is, ook toepasselijk
@@ -152,23 +155,23 @@ class Game(object):
 				#if self.piCarIsAllowedToDrive:
 					## Hier checken naar de input van de joystick ###
 				if arcadeFVal == False:
-					sInput = '0'.encode()
+					sInput = '1'.encode()
 					s.send(sInput)
 					print('send car bluetooth forward')
 				elif arcadeBVal == False:
-					sInput = '1'.encode()
+					sInput = '2'.encode()
 					s.send(sInput)
 					print('send car bluetooth backward')
 				elif arcadeLVal == False:
-					sInput = '2'.encode()
+					sInput = '3'.encode()
 					s.send(sInput)
 					print('send car bluetooth left')
 				elif arcadeRVal == False:
-					sInput = '3'.encode()
+					sInput = '4'.encode()
 					s.send(sInput)
 					print('send car bluetooth right')
 				else:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
 					print('stop car')
 
@@ -246,7 +249,7 @@ class Game(object):
 		elif self.curState == State.INQUESTION:
 			print('Inquestion: Start afspelen van vraag')
 			if self.currentQuestion == 1:
-				sInput = '4'.encode()
+				sInput = '5'.encode()
 				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -266,7 +269,7 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
 
 					buttonAVal = GPIO.input(buttonAPin)
@@ -306,7 +309,7 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 2:
-				sInput = '4'.encode()
+				sInput = '5'.encode()
 				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -326,7 +329,7 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
 
 					buttonAVal = GPIO.input(buttonAPin)
@@ -364,7 +367,7 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 3:
-				sInput = '4'.encode()
+				sInput = '5'.encode()
 				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -384,7 +387,7 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
 
 					buttonAVal = GPIO.input(buttonAPin)
@@ -422,7 +425,7 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 4:
-				sInput = '4'.encode()
+				sInput = '5'.encode()
 				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -442,7 +445,7 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
 
 					buttonAVal = GPIO.input(buttonAPin)
@@ -480,7 +483,7 @@ class Game(object):
 						break
 
 			if self.currentQuestion == 5:
-				sInput = '4'.encode()
+				sInput = '5'.encode()
 				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
@@ -500,9 +503,9 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					sInput = '4'.encode()
+					sInput = '5'.encode()
 					s.send(sInput)
-					
+
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
@@ -568,7 +571,7 @@ class Game(object):
 		self.changeState(State.IDLE) # Om 100% zeker te zijn
 		self.currentQuestion = 0
 
-	# Uitschakelen van alle LEDs
+	# Uitschakelen van alle ledematen LED's
 	def turnOffAllLedematenLeds(self):
 		GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
@@ -576,7 +579,9 @@ class Game(object):
 		GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 
+	# Uitschakelen van alle vragen LED's
 	def turnOffAllVragenLeds(self):
+		print('Alle vraagledjes uit')
 		GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.LOW)
 		GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.LOW)
 		GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.LOW)
@@ -588,6 +593,7 @@ class Game(object):
 		GPIO.output(vraagRGB.BEEN_GOED.value,GPIO.LOW)
 		GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.LOW)
 
+	# Flikkeren van ledjes in IDLE mode -- KAN VERBETERD WORDEN MET FORLOOP
 	def ledFlikker(self):
 		if self.randomLed() == 0:
 			GPIO.output(LedematenLED.HOOFD.value,GPIO.HIGH)
@@ -650,11 +656,11 @@ class Game(object):
 		else:
 			GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.HIGH)
 
+	## Geeft random een 1 of 0 terug
+	# Sluit aan bij ledFlikker functie
+	# @return: {Int} 1, 0
 	def randomLed(self):
 		return np.random.choice([0,1])
-
-	def updateControlsInput(self):
-		print('updating')
 
 # Instantiate system
 try:
