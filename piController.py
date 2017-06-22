@@ -14,7 +14,7 @@ import numpy as np
 # Importeren van python socket voor TCP connectie
 import socket
 HOST='10.0.0.1'
-PORT=8002
+PORT=8013
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
 
@@ -130,9 +130,6 @@ class Game(object):
 			time.sleep(0.2)
 
 		elif self.curState == State.DRIVING:
-			# Auto mag rijden
-			self.changePiCarAllowance(True)
-
 			# Printen dat eerste vraag begint
 			if self.currentQuestion == 0:
 				print('Eerste vraag start')
@@ -158,19 +155,22 @@ class Game(object):
 					sInput = '0'.encode()
 					s.send(sInput)
 					print('send car bluetooth forward')
-				if arcadeBVal == False:
+				elif arcadeBVal == False:
 					sInput = '1'.encode()
 					s.send(sInput)
 					print('send car bluetooth backward')
-				if arcadeLVal == False:
+				elif arcadeLVal == False:
 					sInput = '2'.encode()
 					s.send(sInput)
 					print('send car bluetooth left')
-				if arcadeRVal == False:
+				elif arcadeRVal == False:
 					sInput = '3'.encode()
 					s.send(sInput)
 					print('send car bluetooth right')
-					## --> piCar.move(direction) ##
+				else:
+					sInput = '4'.encode()
+					s.send(sInput)
+					print('stop car')
 
 				# vraag 1: Hoofd B
 				# vraag 2: Romp boven B
@@ -185,9 +185,9 @@ class Game(object):
 					GPIO.output(LedematenLED.BEEN.value,GPIO.LOW)
 
 					if GPIO.input(LedematenLS.HOOFD.value) == 1:
-						print('Bij vraag 1 gearriveerd')
+						print('Bij vraag 1 gearriveerd -- auto stop')
 						self.changeState(State.INQUESTION)
-						self.turnOffAllLeds()
+						self.turnOffAllLedematenLeds()
 						break
 
 				if self.currentQuestion == 2:
@@ -201,7 +201,7 @@ class Game(object):
 					if GPIO.input(LedematenLS.ROMP_BOVEN.value) == 1:
 						print('Bij vraag 2 gearriveerd')
 						self.changeState(State.INQUESTION)
-						self.turnOffAllLeds()
+						self.turnOffAllLedematenLeds()
 						break
 
 				if self.currentQuestion == 3:
@@ -214,7 +214,7 @@ class Game(object):
 					if GPIO.input(LedematenLS.ARM.value) == 1:
 						print('Bij vraag 3 gearriveerd')
 						self.changeState(State.INQUESTION)
-						self.turnOffAllLeds()
+						self.turnOffAllLedematenLeds()
 						break
 
 				if self.currentQuestion == 4:
@@ -227,7 +227,7 @@ class Game(object):
 					if GPIO.input(LedematenLS.ROMP_BENEDEN.value) == 1:
 						print('Bij vraag 4 gearriveerd')
 						self.changeState(State.INQUESTION)
-						self.turnOffAllLeds()
+						self.turnOffAllLedematenLeds()
 						break
 
 				if self.currentQuestion == 5:
@@ -240,13 +240,14 @@ class Game(object):
 					if GPIO.input(LedematenLS.BEEN.value) == 1:
 						print('Bij vraag 5 gearriveerd')
 						self.changeState(State.INQUESTION)
-						self.turnOffAllLeds()
+						self.turnOffAllLedematenLeds()
 						break
 
 		elif self.curState == State.INQUESTION:
 			print('Inquestion: Start afspelen van vraag')
-			self.changePiCarAllowance(False)
 			if self.currentQuestion == 1:
+				sInput = '4'.encode()
+				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag1info.mpeg")
@@ -265,20 +266,17 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
-					print('waiting on button')
-					self.updateControlsInput()
+					sInput = '4'.encode()
+					s.send(sInput)
+
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
 
-					arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
-					arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
-					arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
-					arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
-
 					# Checken of er A, B of C gedrukt wordt en daarna beplen of het correct is
 					if buttonAVal == False or buttonCVal == False:
 						print('fout')
+						GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/fout.mp3")
 						pygame.mixer.music.play()		
@@ -292,24 +290,24 @@ class Game(object):
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						## RGB ROOD AAN VAN vraagRGB.HOOFD ##
-						GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.HIGH)
 						
 
 					if buttonBVal == False:
 						print('goed')
+						GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/goed.mp3")
 						pygame.mixer.music.play()		
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.HIGH)
 						# Naar answering mode om keuze te maken
 						self.changeState(State.ANSWERINGQUESTION)
 						break
 
 			if self.currentQuestion == 2:
+				sInput = '4'.encode()
+				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag2info.mpeg")
@@ -328,17 +326,17 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
+					sInput = '4'.encode()
+					s.send(sInput)
+
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
 
-					arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
-					arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
-					arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
-					arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
 					print('Waiting for button press')
 					# Checken of er A, B of C gedrukt wordt en daarna beplen of het correct is
 					if buttonAVal == False or buttonCVal == False:
+						GPIO.output(vraagRGB.ROMP_BOVEN_FOUT.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/fout.mp3")
 						pygame.mixer.music.play()		
@@ -353,21 +351,21 @@ class Game(object):
 							continue
 						pygame.mixer.quit()
 
-						GPIO.output(vraagRGB.ROMP_BOVEN_FOUT.value,GPIO.HIGH)
-
 					if buttonBVal == False:
+						GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/goed.mp3")
 						pygame.mixer.music.play()		
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.HIGH)
 						# Naar answering mode om keuze te maken
 						self.changeState(State.ANSWERINGQUESTION)
 						break
 
 			if self.currentQuestion == 3:
+				sInput = '4'.encode()
+				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag3info.mpeg")
@@ -386,17 +384,17 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
+					sInput = '4'.encode()
+					s.send(sInput)
+
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
 
-					arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
-					arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
-					arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
-					arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
 					print('Waiting for button press')
 					# Checken of er A, B of C gedrukt wordt en daarna beplen of het correct is
 					if buttonBVal == False or buttonCVal == False:
+						GPIO.output(vraagRGB.ARM_FOUT.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/fout.mp3")
 						pygame.mixer.music.play()		
@@ -411,22 +409,21 @@ class Game(object):
 							continue
 						pygame.mixer.quit()
 
-						## RGB ROOD AAN VAN vraagRGB.HOOFD ##
-						GPIO.output(vraagRGB.ARM_FOUT.value,GPIO.HIGH)
-
 					if buttonAVal == False:
+						GPIO.output(vraagRGB.ARM_GOED.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/goed.mp3")
 						pygame.mixer.music.play()		
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						GPIO.output(vraagRGB.ARM_GOED.value,GPIO.HIGH)
 						# Naar answering mode om keuze te maken
 						self.changeState(State.ANSWERINGQUESTION)
 						break
 
 			if self.currentQuestion == 4:
+				sInput = '4'.encode()
+				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag4info.mpeg")
@@ -445,17 +442,17 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
+					sInput = '4'.encode()
+					s.send(sInput)
+
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
 
-					arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
-					arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
-					arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
-					arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
 					print('Waiting for button press')
 					# Checken of er A, B of C gedrukt wordt en daarna beplen of het correct is
 					if buttonAVal == False or buttonCVal == False:
+						GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/fout.mp3")
 						pygame.mixer.music.play()		
@@ -470,22 +467,21 @@ class Game(object):
 							continue
 						pygame.mixer.quit()
 
-						## RGB ROOD AAN VAN vraagRGB.HOOFD ##
-						GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.HIGH)
-
 					if buttonBVal == False:
+						GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/goed.mp3")
 						pygame.mixer.music.play()		
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
 						# Naar answering mode om keuze te maken
 						self.changeState(State.ANSWERINGQUESTION)
 						break
 
 			if self.currentQuestion == 5:
+				sInput = '4'.encode()
+				s.send(sInput)
 				# Speel info file 
 				pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 				pygame.mixer.music.load("audio/vraag5info.mpeg")
@@ -504,17 +500,17 @@ class Game(object):
 
 				# Wachten en voorkomen dat de audio files heletijd afgespeeld wordt
 				while True:
+					sInput = '4'.encode()
+					s.send(sInput)
+					
 					buttonAVal = GPIO.input(buttonAPin)
 					buttonBVal = GPIO.input(buttonBPin)
 					buttonCVal = GPIO.input(buttonCPin)
 
-					arcadeFVal = GPIO.input(ArcadeStick.FORWARD.value)
-					arcadeBVal = GPIO.input(ArcadeStick.BACKWARD.value)
-					arcadeLVal = GPIO.input(ArcadeStick.LEFT.value)
-					arcadeRVal = GPIO.input(ArcadeStick.RIGHT.value)
 					print('Waiting for button press')
 					# Checken of er A, B of C gedrukt wordt en daarna beplen of het correct is
 					if buttonAVal == False or buttonCVal == False:
+						GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/fout.mp3")
 						pygame.mixer.music.play()		
@@ -529,17 +525,14 @@ class Game(object):
 							continue
 						pygame.mixer.quit()
 
-						## RGB ROOD AAN VAN vraagRGB.HOOFD ##
-						GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.HIGH)
-
 					if buttonBVal == False:
+						GPIO.output(vraagRGB.BEEN_GOED.value,GPIO.HIGH)
 						pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 						pygame.mixer.music.load("audio/goed.mp3")
 						pygame.mixer.music.play()		
 						while pygame.mixer.music.get_busy() == True:
 							continue
 						pygame.mixer.quit()
-						GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
 						# Naar answering mode om keuze te maken
 						self.changeState(State.ANSWERINGQUESTION)
 						break
@@ -561,6 +554,7 @@ class Game(object):
 			while pygame.mixer.music.get_busy() == True:
 				continue
 			pygame.mixer.quit()
+			self.turnOffAllVragenLeds()
 			self.changeState(State.IDLE)
 
 	# Verander de current State
@@ -572,22 +566,28 @@ class Game(object):
 	def resetGame(self):
 		#print('Resetting game')
 		self.changeState(State.IDLE) # Om 100% zeker te zijn
-		self.piCarIsAllowedToDrive = False
 		self.currentQuestion = 0
 
-	# Veranderen of de auto mag rijden
-	# @param {boolean} [allowance]
-	def changePiCarAllowance(self,allowance):
-		self.piCarIsAllowedToDrive = allowance
-
 	# Uitschakelen van alle LEDs
-	def turnOffAllLeds(self):
+	def turnOffAllLedematenLeds(self):
 		GPIO.output(LedematenLED.HOOFD.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ROMP_BOVEN.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ROMP_BENEDEN.value,GPIO.LOW)
 		GPIO.output(LedematenLED.ARM.value,GPIO.LOW)
-	
+
+	def turnOffAllVragenLeds(self):
+		GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.LOW)
+		GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ROMP_BOVEN_FOUT.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ARM_GOED.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ARM_FOUT.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.LOW)
+		GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.LOW)
+		GPIO.output(vraagRGB.BEEN_GOED.value,GPIO.LOW)
+		GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.LOW)
+
 	def ledFlikker(self):
 		if self.randomLed() == 0:
 			GPIO.output(LedematenLED.HOOFD.value,GPIO.HIGH)
@@ -609,6 +609,46 @@ class Game(object):
 			GPIO.output(LedematenLED.BEEN.value,GPIO.HIGH)
 		else:
 			GPIO.output(LedematenLED.BEEN.value,GPIO.LOW)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.HOOFD_GOED.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.HOOFD_FOUT.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ROMP_BOVEN_GOED.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ROMP_BOVEN_FOUT.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ROMP_BOVEN_FOUT.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ARM_GOED.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ARM_GOED.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ARM_FOUT.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ARM_FOUT.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ROMP_BENEDEN_GOED.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.ROMP_BENEDEN_FOUT.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.BEEN_GOED.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.BEEN_GOED.value,GPIO.HIGH)
+		if self.randomLed() == 0:
+			GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.LOW)
+		else:
+			GPIO.output(vraagRGB.BEEN_FOUT.value,GPIO.HIGH)
 
 	def randomLed(self):
 		return np.random.choice([0,1])

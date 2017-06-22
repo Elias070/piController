@@ -7,7 +7,7 @@ import socket
 
 # TCP Connectie
 HOST='10.0.0.1'
-PORT=8002
+PORT=8013
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
@@ -60,8 +60,9 @@ def Right():
 	GPIO.output(pinMotorBForwards, 0)
 	GPIO.output(pinMotorBBackwards, 1)	
 
-piCarInput = 4
+piCarInput = '4'
 try:
+	StopMotors()
 	while True:
 		piCarInput = conn.recv(1024).decode()
 		inputArr = []
@@ -71,20 +72,21 @@ try:
 		if piCarInput == '0':
 			Forwards()
 			print('Forwards')
-			piCarInput = 4
-		elif piCarInput == '1':
+
+		if piCarInput == '1':
 			Backwards()
 			print('Backwards')
-			piCarInput = 4
-		elif piCarInput == '2':
+		
+		if piCarInput == '2':
 			Left()
 			print('Left')
-			piCarInput = 4
-		elif piCarInput == '3':
+		
+		if piCarInput == '3':
 			Right()
 			print('Right')
-			piCarInput = 4
-		elif piCarInput == '4':
+		
+		if piCarInput == '4':
+			print('Los gelaten denk ik')
 			StopMotors()
 
 except KeyboardInterrupt:
